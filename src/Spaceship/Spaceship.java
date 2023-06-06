@@ -27,9 +27,7 @@ public class Spaceship {
         this.androids = androids;
     }
 
-    public String getName() {
-        return this.name;
-    }
+    public String getName() { return this.name; }
     public void setName(String name) {
         this.name = name;
     }
@@ -39,9 +37,7 @@ public class Spaceship {
     public void setPowerSupply(double powerSupply) {
         this.powerSupply = powerSupply;
     }
-    public double getShields() {
-        return this.shields;
-    }
+    public double getShields() { return this.shields; }
     public void setShields(double shields) {
         this.shields = shields;
     }
@@ -63,9 +59,7 @@ public class Spaceship {
     public void setPhotonTorpedo(int photonTorpedo) {
         this.photonTorpedo = photonTorpedo;
     }
-    public int getAndroids() {
-        return this.androids;
-    }
+    public int getAndroids() { return this.androids; }
     public void setAndroids(int androids) {
         this.androids = androids;
     }
@@ -89,6 +83,11 @@ public class Spaceship {
         System.out.println();
     }
 
+    /**
+     * add cargo to the manifest
+     * if cargo with same name exists already, the count value will be added to the existing cargo count value
+     * @param cargo the cargo, that will be added to the manifest
+     */
     public void addCargo(Cargo cargo) {
         int index = this.getManifestIndex(cargo.getName());
         if(index > -1) {
@@ -99,6 +98,13 @@ public class Spaceship {
             this.manifest.add(cargo);
         }
     }
+
+    /**
+     * remove cargo from the manifest
+     * if cargo count value is greater than the stored amount, the stored amount will be completely removed
+     * if no cargo exists, nothing happens
+     * @param cargo the cargo, that will be removed from the manifest
+     */
     public void removeCargo(Cargo cargo) {
         int index = this.getManifestIndex(cargo.getName());
         if(index > -1) {
@@ -112,6 +118,13 @@ public class Spaceship {
         }
     }
 
+    /**
+     * shoots phaser cannon at target spaceship
+     * if the power supply is less than 50, it won't shoot
+     * if the power is equal or greater than 50, it will shoot and target uses the recordHit() method
+     * a message will be sent using the sendMessage() method
+     * @param target the spaceship targeted by the weapon
+     */
     public void shootPhaserCannon(Spaceship target) {
         if(this.powerSupply < 50) {
             this.sendMessage("-=*Click*=-");
@@ -121,6 +134,13 @@ public class Spaceship {
             target.recordHit();
         }
     }
+    /**
+     * shoots a photon torpedo at target spaceship
+     * if there are no torpedos loaded, it won't shoot
+     * if there are torpedos, it will shoot, decrement photonTorpedo and target uses the recordHit() method
+     * a message will be sent using the sendMessage() method
+     * @param target the spaceship targeted by the weapon
+     */
     public void shootPhotonTorpedo(Spaceship target) {
         if(this.photonTorpedo < 1) {
             this.sendMessage("-=*Click*=-");
@@ -130,9 +150,18 @@ public class Spaceship {
             target.recordHit();
          }
     }
+
+    /**
+     * reloads the photon torpedos from the manifest by the count value
+     * if no torpedos are in the manifest, a message will be sent using sendMessage
+     * if there are enough torpedos stored, they will be added to photonTorpedo and the manifest value will be updated, when there are photon torpedos left over or removed
+     * if there are supposed to be more torpedos loaded than there are stored, all stored torpedos are loaded
+     * if all torpedos are loaded, the photon torpedos object will be removed from the manifest
+     * in any case there will be a console specific console message
+     * @param count how many photon torpedos should be reloaded
+     */
     public void reloadPhotonTorpedo(int count) {
         int index = this.getManifestIndex("Photon Torpedo");
-        //int index = this.manifest.indexOf(this.manifest.contains());
         if(index > -1) {
             Cargo cargoM = this.manifest.get(index);
             if(cargoM.getCount() > count) {
@@ -149,7 +178,6 @@ public class Spaceship {
                 this.photonTorpedo += cargoM.getCount();
                 this.manifest.remove(cargoM);
                 System.out.println(cargoM.getCount() + " Photon Torpedo(s) inserted.");
-
             }
         } else {
             System.out.println("No Photon Torpedos found!");
@@ -158,6 +186,17 @@ public class Spaceship {
         System.out.println();
     }
 
+    /**
+     * generates a random number (0, 100)
+     * checks if the number of helping androids is valid, less or equal to the number on the spaceship
+     * if not the number is set to the number specified by the spaceship
+     * then the repair value is calculated, depending on the random value, the android count and the number of things to be repaired
+     * then depending on if the value is supposed to be repaired, the values are updated by the repair value
+     * @param powerSupply true, if powerSupply should be repaired
+     * @param shields true, if shields should be repaired
+     * @param hullStrength true, if hullStrength should be repaired
+     * @param androids count of helping androids
+     */
     public void sendRepairOrder(boolean powerSupply, boolean shields, boolean hullStrength, int androids) {
         Random r = new Random();
         int rnd = r.nextInt(101);
@@ -209,6 +248,13 @@ public class Spaceship {
         System.out.println();
     }
 
+    /**
+     * console message that the spaceship was hit
+     * if shields are greater than 50, 50 is deducted
+     * if shields are less than 50, shields are set to 0 and the rest value is will be deducted from hullStrength and powerSupply
+     * if hullStrength is less than 50 or the rest value, hullStrength is set to 0 and a message will be sent using sendMessage()
+     * if powerSupply is less than 50 or the rest value, powerSupply is set to 0
+     */
     private void recordHit() {
         System.out.println(this.name + " was hit!");
         System.out.println();
@@ -217,8 +263,18 @@ public class Spaceship {
         } else if(this.shields > 0) {
             double x = 50 - this.shields;
             this.shields = 0;
-            this.hullStrength -= x;
-            this.powerSupply -= x;
+            if(this.hullStrength > x) {
+                this.hullStrength -= x;
+            } else {
+                this.hullStrength = 0;
+                this.lifeSupport = 0;
+                this.sendMessage("All life support was destroyed.");
+            }
+            if(this.powerSupply > x) {
+                this.powerSupply -= x;
+            } else {
+                this.powerSupply = 0;
+            }
         } else {
             if(this.hullStrength > 50) {
                 this.hullStrength -= 50;
